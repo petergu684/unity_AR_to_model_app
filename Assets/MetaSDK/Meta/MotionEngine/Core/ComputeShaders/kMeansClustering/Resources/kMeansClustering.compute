@@ -1,0 +1,394 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma enable_d3d11_debug_symbols
+
+#pragma kernel AssignToClusters
+#pragma kernel RecenterClusters0
+#pragma kernel RecenterClusters1
+#pragma kernel RecenterClusters2
+#pragma kernel destroySmallClusters
+#pragma kernel mergeNearClusters
+#pragma kernel splitBigClusters
+#pragma kernel setUpClusteringDispatchIndirect
+
+struct Cluster
+{
+	float3 pointsAverage;
+	float3 pointsSum;
+	int numPoints;
+	float3 minBounds;
+	float3 maxBounds;
+};
+
+struct recenterInfo
+{
+	float3 sum;
+	int count;
+	float3 minBounds;
+	float3 maxBounds;
+};
+
+
+
+
+
+///  Input fields
+float MaxClusterRadius;
+float MinDistanceBetweenClusters;
+int MinPointsInCluster;
+uint numInputPoints;
+
+/// Buffers
+StructuredBuffer<float3> InputPoints;
+RWStructuredBuffer<int> OutputClusterMapping;
+RWStructuredBuffer<Cluster> Clusters;
+RWStructuredBuffer<recenterInfo> RecenterSubtotals; // should be numInfosAfterStep1*numClusters in size
+RWStructuredBuffer<int> dispatchArgs;  // length 18
+
+RWStructuredBuffer<int> inoutIntGlobals;  // 0 is current number of clusters
+
+#define ClusterDimX 256
+#define numInfosAfterStep1 256
+#define numThreadsInSumAll 32
+#define numToAddPerThread 8
+#define maxNumClusters 256
+
+#define floatMax 3.402823466e+38F 
+#define floatMin (-3.402823466e+38F) 
+static const float3 float3zero = float3(0,0,0);
+static const float3 float3Max = float3(floatMax, floatMax, floatMax);
+static const float3 float3Min = float3(floatMin, floatMin, floatMin);
+#define MaxClusterIndex (inoutIntGlobals[0])
+
+float3 maxF3(float3 a, float3 b)
+{
+	return float3( max(a.x, b.x), max(a.y, b.y), max(a.z, b.z));
+}
+
+float3 minF3(float3 a, float3 b)
+{
+	return float3( min(a.x, b.x), min(a.y, b.y), min(a.z, b.z));
+}
+
+
+
+
+
+groupshared float3 group_clusterCenters[ClusterDimX];
+
+[numthreads(ClusterDimX,1,1)] // numPoints/ClusterDimX, 1, 1
+void AssignToClusters (uint threadIdInGroup : SV_GroupIndex, uint3 groupId : SV_GroupID)
+{
+	// Copy cluster info local
+	group_clusterCenters[threadIdInGroup.x] = Clusters[threadIdInGroup.x].pointsAverage;
+
+	int globalThreadIndex = groupId.x * ClusterDimX + threadIdInGroup.x;
+
+	float3 inputPoint = InputPoints[globalThreadIndex];
+
+	float smallest_distance = floatMax; // MaxClusterRadius;
+	int closestClusterIndex = -1;
+
+	GroupMemoryBarrierWithGroupSync();
+
+	int clusterTestIndex = MaxClusterIndex-1;
+
+	for ( ; clusterTestIndex >= 0; --clusterTestIndex)
+	{
+		float3 clusterCenter = group_clusterCenters[clusterTestIndex];
+		float d = distance(inputPoint, clusterCenter);
+		if (d < smallest_distance)
+		{
+			smallest_distance = d;
+			closestClusterIndex = clusterTestIndex;
+		}
+	}
+
+
+	OutputClusterMapping[globalThreadIndex] = closestClusterIndex;
+}
+
+
+// Clears the subtotals to all zeroes.  Call with 1,numClusters,1 for group count.
+[numthreads(numInfosAfterStep1,1,1)]
+void RecenterClusters0(uint realThreadId : SV_DispatchThreadID)
+{
+	recenterInfo empty;
+	empty.count = 0;
+	empty.sum = float3zero;
+	empty.minBounds = float3Max;
+	empty.maxBounds = float3Min;
+
+	RecenterSubtotals[realThreadId] = empty;
+}
+
+groupshared recenterInfo group_pointSums[ClusterDimX];  // each x thread gets one entry per cluster
+
+recenterInfo combine(recenterInfo a, recenterInfo b)
+{
+	recenterInfo result;
+	result.sum = a.sum + b.sum;
+	result.count = a.count + b.count;
+
+	if (a.count == 0)
+	{
+		result.minBounds = b.minBounds;
+		result.maxBounds = b.maxBounds;
+	}
+	else if (b.count == 0)
+	{
+		result.minBounds = a.minBounds;
+		result.maxBounds = a.maxBounds;
+	}
+	else
+	{
+		result.minBounds = minF3(a.minBounds, b.minBounds);
+		result.maxBounds = maxF3(a.maxBounds, b.maxBounds);
+	}
+	return result;
+}
+
+void combineInGroupData(int x1, int x2, int clusterIndex)
+{
+	group_pointSums[x1] = combine(group_pointSums[x1], group_pointSums[x2]); 
+}
+
+
+[numthreads(ClusterDimX,1,1)]  // Call with x = num points / ClusterDimX*numPointsPerThread, y = num clusters, z = 1
+void RecenterClusters1 (uint3 threadIdInGroup : SV_GroupThreadID, uint3 groupId : SV_GroupID)
+{
+	int globalXIndex = groupId.x * ClusterDimX + threadIdInGroup.x;
+	int clusterToConsider = groupId.y;
+
+	recenterInfo sum;
+	sum.count = 0;
+	sum.sum = float3zero;
+	sum.minBounds = float3Max;
+	sum.maxBounds = float3Min;
+
+	int dataStartIndex = globalXIndex * numToAddPerThread;
+	int dataStopIndex = dataStartIndex + numToAddPerThread;
+	dataStopIndex = min(dataStopIndex, numInputPoints);  // don't sum the bogus points at the end
+
+	for(int dataIndex = dataStartIndex; dataIndex < dataStopIndex; ++dataIndex)
+	{
+		int clusterIndex = OutputClusterMapping[dataIndex];
+		float3 inputPoint = InputPoints[dataIndex];
+
+		if (clusterIndex == clusterToConsider && length(inputPoint) > 0.0001f)
+		{
+			sum.count++;
+			sum.sum += inputPoint;
+			sum.maxBounds = maxF3(sum.maxBounds, inputPoint);
+			sum.minBounds = minF3(sum.minBounds, inputPoint);
+		}
+	}
+
+	group_pointSums[threadIdInGroup.x] = sum;
+	GroupMemoryBarrierWithGroupSync(); 
+
+	// Okay, we've summed a lot of data, and populated the group memory.
+	// Now do a binary tree reduction to add up more stuff:
+	if (ClusterDimX >= 512) { if (threadIdInGroup.x < 256) { combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 256, clusterToConsider); } GroupMemoryBarrierWithGroupSync(); }
+	if (ClusterDimX >= 256) { if (threadIdInGroup.x < 128) { combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 128, clusterToConsider); } GroupMemoryBarrierWithGroupSync(); }
+	if (ClusterDimX >= 128) { if (threadIdInGroup.x < 64) { combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 64, clusterToConsider); } GroupMemoryBarrierWithGroupSync(); }
+	if (threadIdInGroup.x < 32) 
+	{
+		if (ClusterDimX >= 64) combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 32, clusterToConsider);
+		if (ClusterDimX >= 32) combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 16, clusterToConsider);
+		if (ClusterDimX >= 16) combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 8, clusterToConsider);
+		if (ClusterDimX >= 8) combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 4, clusterToConsider);
+		if (ClusterDimX >= 4) combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 2, clusterToConsider);
+		if (ClusterDimX >= 2) combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 1, clusterToConsider);
+	}
+	if (threadIdInGroup.x == 0)
+	{
+		RecenterSubtotals[clusterToConsider*numInfosAfterStep1+groupId.x] = group_pointSums[0];
+	}
+}
+
+[numthreads(numInfosAfterStep1,1,1)]  // call with 1,numclusters,1
+void RecenterClusters2 (uint3 threadIdInGroup : SV_GroupThreadID, uint3 groupId : SV_GroupID)
+{
+	int clusterToConsider = groupId.y;
+
+	// Copy data local - each thread group above made an entry, and each thread here will load one such entry
+	group_pointSums[threadIdInGroup.x] = RecenterSubtotals[clusterToConsider*numInfosAfterStep1+threadIdInGroup.x];
+	GroupMemoryBarrierWithGroupSync();
+
+	// Now do a binary tree reduction to add up more stuff:
+	if (ClusterDimX >= 512) { if (threadIdInGroup.x < 256) { combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 256, clusterToConsider); } GroupMemoryBarrierWithGroupSync(); }
+	if (ClusterDimX >= 256) { if (threadIdInGroup.x < 128) { combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 128, clusterToConsider); } GroupMemoryBarrierWithGroupSync(); }
+	if (ClusterDimX >= 128) { if (threadIdInGroup.x < 64) { combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 64, clusterToConsider); } GroupMemoryBarrierWithGroupSync(); }
+	if (threadIdInGroup.x < 32) 
+	{
+		if (ClusterDimX >= 64) combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 32, clusterToConsider);
+		if (ClusterDimX >= 32) combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 16, clusterToConsider);
+		if (ClusterDimX >= 16) combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 8, clusterToConsider);
+		if (ClusterDimX >= 8) combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 4, clusterToConsider);
+		if (ClusterDimX >= 4) combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 2, clusterToConsider);
+		if (ClusterDimX >= 2) combineInGroupData(threadIdInGroup.x,threadIdInGroup.x + 1, clusterToConsider);
+	}
+
+	if (threadIdInGroup.x == 0) 
+	{	
+		Cluster cluster;
+		cluster.pointsSum = group_pointSums[0].sum;
+		cluster.numPoints = group_pointSums[0].count;
+		cluster.pointsAverage = cluster.pointsSum / cluster.numPoints;
+		cluster.minBounds = group_pointSums[0].minBounds;
+		cluster.maxBounds = group_pointSums[0].maxBounds;
+
+		Clusters[clusterToConsider] = cluster;
+	}
+}
+
+
+
+[numthreads(1,1,1)] // call with 1,1,1.  This would be in C# if it weren't slow to move data to the CPU
+void destroySmallClusters()
+{
+	int minPoints = MinPointsInCluster;
+
+	for(int i = 0; i < MaxClusterIndex; ++i)
+	{
+		Cluster cluster = Clusters[i];
+
+		if (cluster.numPoints < MinPointsInCluster)
+		{
+			// Delete the cluster by overwriting it with the last one.
+			--MaxClusterIndex;
+
+			Clusters[i] = Clusters[MaxClusterIndex];
+			Clusters[MaxClusterIndex].numPoints = 0;  // to mark it bogus
+			--i;  // and then need to test at the same index again.
+		}
+	}
+}
+
+
+
+groupshared Cluster group_clusters[maxNumClusters];
+
+[numthreads(maxNumClusters,1,1)] // call with 1,1,1.  This would be in C# if it weren't slow to move data to the CPU
+void mergeNearClusters(uint threadIdInGroup : SV_GroupIndex)
+{
+	// Copy the cluster data local
+	group_clusters[threadIdInGroup] = Clusters[threadIdInGroup];
+	GroupMemoryBarrierWithGroupSync();
+
+	if(threadIdInGroup != 0) return;
+
+	int maxClusterIndex = MaxClusterIndex;
+	
+	for(int i = 0; i < maxClusterIndex; ++i)
+	{
+		float3 ip = group_clusters[i].pointsAverage;
+		
+		for(int j = i+1; j < maxClusterIndex; ++j)
+		{
+			float3 jp = group_clusters[j].pointsAverage;
+			float d = distance(ip,jp);
+			
+			if (d < MinDistanceBetweenClusters)
+			{
+				float3 newCenter = (ip+jp)*0.5f;
+
+				// Kill j
+				--maxClusterIndex;
+				Clusters[j] = group_clusters[maxClusterIndex];
+				Clusters[i].pointsAverage = newCenter;
+				ip = newCenter;
+				--j; // then need to test the same index again
+			}
+		}
+	}
+
+	MaxClusterIndex = maxClusterIndex;
+}
+
+float MaxClusterBoundsDiagonal;
+[numthreads(1,1,1)]  // call with 1,1,1.  This would be in C# if it weren't slow to move data to the CPU
+void splitBigClusters()
+{
+	for(int i = MaxClusterIndex-1; i >= 0; --i)
+	{
+		Cluster cluster = Clusters[i];
+
+		if (cluster.numPoints < 2) continue;
+
+		float3 minToMax = cluster.maxBounds - cluster.minBounds;
+		float diagonalLength = length(minToMax);
+
+		if (diagonalLength > MaxClusterBoundsDiagonal)
+		{
+			// Modify old cluster
+			Clusters[i].pointsAverage = cluster.minBounds + (minToMax / 4);
+
+			// And add a new one
+			float3 newCenter = cluster.maxBounds - (minToMax / 4);
+
+			Cluster newCluster;
+			newCluster.pointsSum = newCenter;
+			newCluster.numPoints = 1;
+			newCluster.pointsAverage = newCenter;
+			newCluster.minBounds = newCenter;
+			newCluster.maxBounds = newCenter;
+
+			Clusters[MaxClusterIndex] = newCluster;
+			++MaxClusterIndex;
+		}
+	}
+}
+
+
+[numthreads(18,1,1)]  // always called with 1,1,1 
+void setUpClusteringDispatchIndirect(uint3 threadIdInGroup : SV_GroupThreadID)
+{
+	switch (threadIdInGroup.x)
+	{
+
+	case 0:
+	//AssignToClusters      :0
+	dispatchArgs[0] = (numInputPoints + ClusterDimX - 1)/ClusterDimX;
+	dispatchArgs[1] = 1;
+	dispatchArgs[2] = 1;
+	break;
+
+	case 3:
+	// RecenterClusters0	:3
+	dispatchArgs[3] = 1;
+	dispatchArgs[4] = MaxClusterIndex;
+	dispatchArgs[5] = 1;
+	break;
+
+	case 6:
+	//RecenterClusters1     :6
+	int perGroup = ClusterDimX * numToAddPerThread;
+	dispatchArgs[6] = (numInputPoints + perGroup-1)/perGroup;
+	dispatchArgs[7] = MaxClusterIndex;
+	dispatchArgs[8] = 1;
+	break;
+
+	case 9:
+	//RecenterClusters2     :9
+	dispatchArgs[9] = 1;
+	dispatchArgs[10] = MaxClusterIndex;
+	dispatchArgs[11] = 1;
+	break;
+
+	case 12:
+	//destorySmallClusters  :12
+	dispatchArgs[12] = 1;
+	dispatchArgs[13] = 1;
+	dispatchArgs[14] = 1;
+	break;
+
+	case 15:
+
+	//splitBigClusters	    :15
+	dispatchArgs[15] = 1;
+	dispatchArgs[16] = 1;
+	dispatchArgs[17] = 1;
+	break;
+	}
+}

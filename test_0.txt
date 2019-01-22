@@ -1,0 +1,17 @@
+point step:	12
+name:   x
+offset:   0
+datatype:   
+count:   1
+next field
+name:   y
+offset:   4
+datatype:   
+count:   1
+next field
+name:   z
+offset:   8
+datatype:   
+count:   1
+next field
+plane:	0.97101x+-0.227756y+-0.0725706z+0.00299736=0

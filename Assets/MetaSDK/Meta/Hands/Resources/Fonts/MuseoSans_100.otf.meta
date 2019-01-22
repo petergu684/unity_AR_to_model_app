@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: b443695dc65603d4180d25916345cb6d
+timeCreated: 1484250131
+licenseType: Pro
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - Museo Sans
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 1e674bdb15167fa4a8448559c5b13896, type: 3}
+  - {fileID: 12800000, guid: 2232d7bd8e4f3df4cbc549b6c084d3ba, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

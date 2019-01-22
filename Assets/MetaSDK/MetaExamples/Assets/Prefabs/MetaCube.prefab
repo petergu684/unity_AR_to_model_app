@@ -1,0 +1,247 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 1000013788221144}
+  m_IsPrefabParent: 1
+--- !u!1 &1000013788221144
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 4000014141714988}
+  - component: {fileID: 33000010375060394}
+  - component: {fileID: 23000012754371116}
+  - component: {fileID: 65000012680474512}
+  - component: {fileID: 114000013417585174}
+  - component: {fileID: 114000012595589530}
+  - component: {fileID: 114637854751897404}
+  - component: {fileID: 114000011903025092}
+  - component: {fileID: 54000012525325862}
+  m_Layer: 0
+  m_Name: MetaCube
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4000014141714988
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013788221144}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.075, y: 0, z: 0.4}
+  m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &23000012754371116
+MeshRenderer:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013788221144}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 4fe0ea418a312404ebb16f068d446880, type: 2}
+  - {fileID: 2100000, guid: eec7b43bcbb6a2944a28faa7da6c8947, type: 2}
+  - {fileID: 2100000, guid: a2bc7e67dbeea2b47ab8acfa52209002, type: 2}
+  - {fileID: 2100000, guid: 1e350d71abdc50246b58ea0e136273a2, type: 2}
+  - {fileID: 2100000, guid: 756b6118887d6e64c8d3f07fc369d23e, type: 2}
+  - {fileID: 2100000, guid: 75b99c7ac5279dd4490b2a12e43fe761, type: 2}
+  - {fileID: 2100000, guid: 71fb1f99205d2494eb2cc459780629c2, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!33 &33000010375060394
+MeshFilter:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013788221144}
+  m_Mesh: {fileID: 4300014, guid: 5188fa1f53bd36645a8414e95e51391a, type: 3}
+--- !u!54 &54000012525325862
+Rigidbody:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013788221144}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 5
+  m_AngularDrag: 5
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!65 &65000012680474512
+BoxCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013788221144}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.3, y: 0.3, z: 0.3}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &114000011903025092
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013788221144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca44db64baca3fb458a23a2f4c290324, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Interaction: {fileID: 0}
+  Materials:
+  - MaterialIndex: 2
+    Idle: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    Highlight: {r: 1, g: 1, b: 1, a: 1}
+    Active: {r: 1, g: 2, b: 3, a: 1}
+  - MaterialIndex: 4
+    Idle: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    Highlight: {r: 1, g: 1, b: 1, a: 1}
+    Active: {r: 1, g: 2, b: 3, a: 1}
+  - MaterialIndex: 6
+    Idle: {r: 0, g: 0, b: 0, a: 0}
+    Highlight: {r: 0, g: 0.55, b: 0.55, a: 1}
+    Active: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &114000012595589530
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013788221144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea67a886b13fbff4395b0caf9c5a041f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _targetTransform: {fileID: 0}
+  _events:
+    _engaged:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.MetaInteractionDataEvent, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    _disengaged:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.MetaInteractionDataEvent, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    _hoverStart:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.MetaInteractionDataEvent, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    _hoverEnd:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.MetaInteractionDataEvent, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+--- !u!114 &114000013417585174
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013788221144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45bd94a85c17ec4418225806a214312f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _targetTransform: {fileID: 0}
+  _events:
+    _engaged:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.MetaInteractionDataEvent, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    _disengaged:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.MetaInteractionDataEvent, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    _hoverStart:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.MetaInteractionDataEvent, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    _hoverEnd:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.MetaInteractionDataEvent, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+--- !u!114 &114637854751897404
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013788221144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 802fb631bf3d414478d36e2d114aed2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _targetTransform: {fileID: 0}
+  _events:
+    _engaged:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.MetaInteractionDataEvent, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    _disengaged:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.MetaInteractionDataEvent, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    _hoverStart:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.MetaInteractionDataEvent, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    _hoverEnd:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.MetaInteractionDataEvent, Assembly-CSharp, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+  _minSize: {x: 0.3, y: 0.3}
+  _maxSize: {x: 2, y: 2}

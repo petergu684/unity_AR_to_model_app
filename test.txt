@@ -1,0 +1,18 @@
+size: 3
+point step:	12
+name:   x
+offset:   0
+datatype:   
+count:   1
+next field
+name:   y
+offset:   4
+datatype:   
+count:   1
+next field
+name:   z
+offset:   8
+datatype:   
+count:   1
+next field
+after pc21

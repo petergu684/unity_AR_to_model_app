@@ -1,0 +1,93 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 1000013163591650}
+  m_IsPrefabParent: 1
+--- !u!1 &1000013163591650
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 4000014006638896}
+  - component: {fileID: 114000013342654558}
+  m_Layer: 0
+  m_Name: MetaHands
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4000014006638896
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013163591650}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114000013342654558
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013163591650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3fa1e087597fdf41ba26ea65a8e1e4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rightTemplate: {fileID: 1000012363582578, guid: 8fec8da56e657794181c21d4d01e2003,
+    type: 2}
+  _leftTemplate: {fileID: 1000011904594566, guid: cca3b79942a496742bb678d8685eba24,
+    type: 2}
+  _settings:
+    _palmRadiusNear: 0.05
+    _palmRadiusFar: 0.07
+    _closestObjectDebounce: 0.01
+    _queryTriggers: 2
+    _queryLayerMask:
+      serializedVersion: 2
+      m_Bits: 4294967291
+    _handFeatureLayer: 0
+  _events:
+    OnHandEnter:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.OnNewHandData, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+    OnHandExit:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.OnNewHandData, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+    OnGrab:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.OnNewHandData, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+    OnRelease:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: Meta.OnNewHandData, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+  _statistics:
+    _initilized: 0
+    _handsFrameID: 0
+    _handsInScene: 0
+    _draw: 0
+    _agressiveSegmentation: 1
